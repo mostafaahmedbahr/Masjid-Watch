@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/settings_provider.dart';
-import '../providers/time_provider.dart';
-import '../models/location_config.dart';
-import '../utils/constants.dart';
-import '../theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/settings_cubit.dart';
+import '../../../home/data/models/location_config.dart';
+import '../../../home/presentation/cubit/home_cubit.dart';
+import '../../../../core/utils/constants.dart';
+import '../../../../core/theme/app_theme.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class SettingsView extends StatefulWidget {
+  const SettingsView({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsView> createState() => _SettingsViewState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsViewState extends State<SettingsView> {
   late TextEditingController _latCtrl;
   late TextEditingController _lngCtrl;
   late TextEditingController _tzCtrl;
@@ -23,7 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final config = context.read<SettingsProvider>().config;
+    final config = context.read<SettingsCubit>().state.config;
     _latCtrl = TextEditingController(text: config.latitude.toString());
     _lngCtrl = TextEditingController(text: config.longitude.toString());
     _tzCtrl = TextEditingController(text: config.timezone.toString());
@@ -46,15 +46,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final tz = double.tryParse(_tzCtrl.text) ?? _draft.timezone;
 
     final updated = _draft.copyWith(
-      latitude: lat,
-      longitude: lng,
-      timezone: tz,
-      messageText: _messageCtrl.text,
+      latitude: lat, longitude: lng, timezone: tz, messageText: _messageCtrl.text,
     );
 
-    await context.read<SettingsProvider>().updateConfig(updated);
+    await context.read<SettingsCubit>().updateConfig(updated);
     if (!mounted) return;
-    context.read<TimeProvider>().recalculate(updated);
+    context.read<HomeCubit>().recalculate(updated);
     Navigator.pop(context);
   }
 
@@ -158,14 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _sectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.goldColor,
-        ),
-      ),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.goldColor)),
     );
   }
 
@@ -179,38 +169,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         prefixIcon: Icon(icon, color: Colors.white54),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.08),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
       ),
     );
   }
 
   Widget _dropdown<T>({
-    required T value,
-    required List<T> items,
-    required String Function(T) label,
-    required ValueChanged<T> onChanged,
+    required T value, required List<T> items,
+    required String Function(T) label, required ValueChanged<T> onChanged,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
+          value: value, isExpanded: true,
           dropdownColor: const Color(0xFF2E2E2E),
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          items: items.map((m) {
-            return DropdownMenuItem(value: m, child: Text(label(m)));
-          }).toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
+          items: items.map((m) => DropdownMenuItem(value: m, child: Text(label(m)))).toList(),
+          onChanged: (v) { if (v != null) onChanged(v); },
         ),
       ),
     );
@@ -224,22 +201,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SizedBox(width: 60, child: Text(name, style: const TextStyle(color: Colors.white70))),
           Expanded(
             child: Slider(
-              value: value.toDouble(),
-              min: 0,
-              max: 30,
-              divisions: 30,
-              activeColor: AppTheme.goldColor,
-              label: '$value دقيقة',
+              value: value.toDouble(), min: 0, max: 30, divisions: 30,
+              activeColor: AppTheme.goldColor, label: '$value دقيقة',
               onChanged: (v) => onChanged(v.round()),
             ),
           ),
-          SizedBox(
-            width: 40,
-            child: Text(
-              '$value د',
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
+          SizedBox(width: 40, child: Text('$value د', style: const TextStyle(color: Colors.white70))),
         ],
       ),
     );
@@ -254,22 +221,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(width: 60, child: Text('السرعة', style: TextStyle(color: Colors.white70))),
           Expanded(
             child: Slider(
-              value: value.toDouble(),
-              min: 1,
-              max: 3,
-              divisions: 2,
-              activeColor: AppTheme.goldColor,
-              label: labels[value] ?? '',
+              value: value.toDouble(), min: 1, max: 3, divisions: 2,
+              activeColor: AppTheme.goldColor, label: labels[value] ?? '',
               onChanged: (v) => onChanged(v.round()),
             ),
           ),
-          SizedBox(
-            width: 60,
-            child: Text(
-              labels[value] ?? '',
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-          ),
+          SizedBox(width: 60, child: Text(labels[value] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 13))),
         ],
       ),
     );

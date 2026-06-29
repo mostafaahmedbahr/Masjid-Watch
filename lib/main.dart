@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'providers/settings_provider.dart';
-import 'providers/time_provider.dart';
-import 'screens/home_screen.dart';
-import 'theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/settings/presentation/cubit/settings_cubit.dart';
+import 'features/home/presentation/cubit/home_cubit.dart';
+import 'features/home/presentation/views/home_view.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,11 +27,8 @@ class MasjidWatchApp extends StatefulWidget {
 class _MasjidWatchAppState extends State<MasjidWatchApp> {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        ChangeNotifierProvider(create: (_) => TimeProvider()),
-      ],
+    return BlocProvider<SettingsCubit>(
+      create: (_) => SettingsCubit(),
       child: MaterialApp(
         title: 'ساعة المسجد الذكية',
         debugShowCheckedModeBanner: false,
@@ -61,11 +58,9 @@ class _AppLoaderState extends State<_AppLoader> {
   }
 
   Future<void> _load() async {
-    final settings = context.read<SettingsProvider>();
+    final settings = context.read<SettingsCubit>();
     await settings.load();
     if (!mounted) return;
-    final time = context.read<TimeProvider>();
-    time.start(settings.config);
     setState(() => _loaded = true);
   }
 
@@ -93,6 +88,10 @@ class _AppLoaderState extends State<_AppLoader> {
         ),
       );
     }
-    return const HomeScreen();
+    final settings = context.read<SettingsCubit>();
+    return BlocProvider(
+      create: (_) => HomeCubit()..start(settings.state.config),
+      child: const HomeView(),
+    );
   }
 }

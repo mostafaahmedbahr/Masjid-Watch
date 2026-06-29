@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../utils/responsive.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 
 class MessageScrollWidget extends StatefulWidget {
   final String message;
@@ -78,21 +79,56 @@ class _MessageScrollWidgetState extends State<MessageScrollWidget> {
     return GestureDetector(
       onTap: () => setState(() => _paused = !_paused),
       child: Container(
-        height: SizeConfig.hp(28),
-        color: Colors.black26,
-        child: SingleChildScrollView(
-          controller: _controller,
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            height: SizeConfig.hp(28),
-            child: Center(
-              child: Text(
-                _displayText,
-                style: TextStyle(fontSize: SizeConfig.sp(12), color: Colors.white.withValues(alpha: _paused ? 0.4 : 0.7), letterSpacing: 0.5),
-                textDirection: TextDirection.rtl,
+        height: SizeConfig.hp(30),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black12,
+              const Color(0xFF0A1A0E).withValues(alpha: 0.6),
+            ],
+          ),
+          border: Border(
+            top: BorderSide(color: AppTheme.goldColor.withValues(alpha: 0.1)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: SizeConfig.wp(6),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.wp(2)),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.goldColor.withValues(alpha: 0.15), AppTheme.goldColor.withValues(alpha: 0.05)],
+                ),
+              ),
+              child: Center(
+                child: Icon(Icons.menu_book, color: AppTheme.goldColor.withValues(alpha: 0.4), size: SizeConfig.sp(13)),
               ),
             ),
-          ),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _controller,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  height: SizeConfig.hp(30),
+                  child: Center(
+                    child: Text(
+                      _displayText,
+                      style: TextStyle(
+                        fontSize: SizeConfig.sp(12),
+                        color: Colors.white.withValues(alpha: _paused ? 0.3 : 0.65),
+                        letterSpacing: 0.5,
+                        shadows: const [Shadow(color: Color(0x33D4AF37), blurRadius: 5)],
+                      ),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

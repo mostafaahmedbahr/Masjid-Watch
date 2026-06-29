@@ -23,12 +23,15 @@ class SizeConfig {
   static double _screenHeight = 0;
   static double _scale = 1.0;
 
-  static const double designWidth = 800;
+  static const double designWidth = 1200;
+  static const double designHeight = 700;
 
   static void init(BuildContext context) {
     _screenWidth = MediaQuery.of(context).size.width;
     _screenHeight = MediaQuery.of(context).size.height;
-    _scale = (_screenWidth / designWidth).clamp(0.7, 2.5);
+    final wScale = _screenWidth / designWidth;
+    final hScale = _screenHeight / designHeight;
+    _scale = (wScale < hScale ? wScale : hScale).clamp(0.35, 2.0);
   }
 
   static double sp(double size) => size * _scale;

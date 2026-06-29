@@ -1,4 +1,5 @@
-import '../utils/constants.dart';
+import '../../../../core/utils/constants.dart';
+import 'package:adhan_dart/adhan_dart.dart' as adhan;
 
 class LocationConfig {
   final double latitude;
@@ -83,6 +84,58 @@ class LocationConfig {
       case 4: return maghribIqamaOffset;
       case 5: return ishaIqamaOffset;
       default: return 0;
+    }
+  }
+
+  adhan.CalculationParameters toAdhanParams() {
+    final params = calculationMethod.toAdhanParams();
+    params.madhab = asrMethod.toAdhanMadhab();
+    params.highLatitudeRule = highLatRule.toAdhanRule();
+    return params;
+  }
+}
+
+extension CalcMethodMapping on CalculationMethod {
+  adhan.CalculationParameters toAdhanParams() {
+    switch (this) {
+      case CalculationMethod.muslimWorldLeague:
+        return adhan.CalculationMethodParameters.muslimWorldLeague();
+      case CalculationMethod.islamicSocietyOfNorthAmerica:
+        return adhan.CalculationMethodParameters.northAmerica();
+      case CalculationMethod.egyptianGeneralAuthority:
+        return adhan.CalculationMethodParameters.egyptian();
+      case CalculationMethod.ummAlQura:
+        return adhan.CalculationMethodParameters.ummAlQura();
+      case CalculationMethod.universityOfIslamicSciencesKarachi:
+        return adhan.CalculationMethodParameters.karachi();
+      case CalculationMethod.tehran:
+        return adhan.CalculationMethodParameters.tehran();
+      case CalculationMethod.jafari:
+        return adhan.CalculationMethodParameters.jafari();
+    }
+  }
+}
+
+extension AsrMethodMapping on AsrMethod {
+  adhan.Madhab toAdhanMadhab() {
+    switch (this) {
+      case AsrMethod.standard:
+        return adhan.Madhab.shafi;
+      case AsrMethod.hanafi:
+        return adhan.Madhab.hanafi;
+    }
+  }
+}
+
+extension HighLatRuleMapping on HighLatitudeRule {
+  adhan.HighLatitudeRule toAdhanRule() {
+    switch (this) {
+      case HighLatitudeRule.middleOfNight:
+        return adhan.HighLatitudeRule.middleOfTheNight;
+      case HighLatitudeRule.seventhOfNight:
+        return adhan.HighLatitudeRule.seventhOfTheNight;
+      case HighLatitudeRule.angleBased:
+        return adhan.HighLatitudeRule.twilightAngle;
     }
   }
 }

@@ -1,5 +1,5 @@
 
-class PrayerTimes {
+class PrayerTimesModel {
   final DateTime fajr;
   final DateTime sunrise;
   final DateTime dhuhr;
@@ -7,7 +7,7 @@ class PrayerTimes {
   final DateTime maghrib;
   final DateTime isha;
 
-  PrayerTimes({
+  PrayerTimesModel({
     required this.fajr,
     required this.sunrise,
     required this.dhuhr,
@@ -32,6 +32,10 @@ class PrayerTimes {
     'الفجر', 'الشروق', 'الظهر', 'العصر', 'المغرب', 'العشاء',
   ];
 
+  static const List<String> adhanLabels = [
+    'أذان الفجر', 'الشروق', 'أذان الظهر', 'أذان العصر', 'أذان المغرب', 'أذان العشاء',
+  ];
+
   String formatTime(DateTime time, {bool is24Hour = true}) {
     if (is24Hour) {
       return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
@@ -50,10 +54,25 @@ class PrayerTimes {
     return 0;
   }
 
+  int findCurrentPrayerIndex() {
+    final now = DateTime.now();
+    int current = 0;
+    for (int i = 0; i < 6; i++) {
+      if (getPrayerTime(i).isBefore(now) || getPrayerTime(i).isAtSameMomentAs(now)) {
+        current = i;
+      }
+    }
+    return current;
+  }
+
   Duration countdownTo(int index) {
     final target = getPrayerTime(index);
     final now = DateTime.now();
     if (target.isAfter(now)) return target.difference(now);
     return Duration.zero;
+  }
+
+  Duration countdownToNext() {
+    return countdownTo(findNextPrayerIndex());
   }
 }
